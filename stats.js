@@ -1,13 +1,16 @@
-/* 익명 집계.
-   사람들이 적은 내용(질문·이름·문구 원문)은 절대 보내지 않는다.
-   보내는 건 "어떤 종류를 골랐나 / 몇 글자였나 / 끝까지 갔나" 뿐이다.
+/* sayyes.me 로그.
 
-   ENDPOINT 가 비어 있으면 아무것도 전송하지 않는다. 수집처를 정한 뒤 이 한 줄만 채우면 된다. */
+   악용 신고에 대응하려면 무슨 내용이 오갔는지 남아 있어야 한다.
+   그래서 질문·이름·문구를 그대로 기록한다. 이 사실은 만들기 화면과
+   링크를 여는 화면 양쪽에 적어두었다. 몰래 모으지 않는다.
+
+   ENDPOINT 가 비어 있으면 아무것도 전송하지 않는다. */
 window.STATS = (function(){
 
-  const ENDPOINT = '';        // 예: 'https://<수집처>/e'
+  const ENDPOINT = '';   // Apps Script 웹 앱 URL (collector/apps-script.gs 참고)
 
-  // 방문자를 식별하지 않는다. 세션 구분용으로 탭이 살아있는 동안만 쓰는 임시 번호.
+  // 같은 사람이 만든 링크와 열린 기록을 이어보기 위한 임시 번호.
+  // 탭을 닫으면 사라지고, 사람을 식별하지는 않는다.
   let sid = '';
   try {
     sid = sessionStorage.getItem('sid') || '';
@@ -15,43 +18,50 @@ window.STATS = (function(){
       sid = Math.random().toString(36).slice(2, 10);
       sessionStorage.setItem('sid', sid);
     }
-  } catch (e) { /* 저장이 막혀 있으면 그냥 세션 구분 없이 간다 */ }
+  } catch (e) {}
 
+  /* Apps Script 는 preflight(OPTIONS) 를 처리하지 못한다.
+     'application/json' 으로 보내면 preflight 가 붙어 전송 자체가 막히므로
+     반드시 text/plain 으로 보낸다. 내용은 그대로 JSON 문자열이다. */
   function send(type, data){
     if (!ENDPOINT) return;
-    const body = JSON.stringify(Object.assign({ t: type, s: sid, at: Date.now() }, data || {}));
+    const body = JSON.stringify(Object.assign(
+      { t: type, s: sid, ref: (document.referrer || '').slice(0, 120) },
+      data || {}
+    ));
     try {
       if (navigator.sendBeacon){
-        navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'application/json' }));
+        navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'text/plain;charset=UTF-8' }));
       } else {
-        fetch(ENDPOINT, { method:'POST', body, keepalive:true, headers:{'Content-Type':'application/json'} });
+        fetch(ENDPOINT, {
+          method: 'POST', body, keepalive: true, mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        });
       }
-    } catch (e) { /* 집계 실패가 서비스를 방해하면 안 된다 */ }
+    } catch (e) { /* 기록 실패가 서비스를 막으면 안 된다 */ }
+  }
+
+  // 내용 전체. 신고가 들어왔을 때 이걸로 판단한다.
+  function payload(cfg){
+    return {
+      q: cfg.q, to: cfg.t, from: cfg.f,
+      y: cfg.y, n: cfg.n,
+      l: Array.isArray(cfg.l) ? cfg.l : [],
+      th: cfg.th,
+    };
   }
 
   return {
-    // 만들기 화면에 들어옴
     openMake(){ send('make_open'); },
 
-    // 링크를 복사함. 무엇을 골랐는지만 남기고 내용은 남기지 않는다.
-    create(cfg, preset){
-      send('create', {
-        p: preset || null,                                   // 프리셋 종류
-        th: cfg.th,                                          // 색
-        qlen: (cfg.q || '').length,                          // 질문 길이만
-        named: !!cfg.t,                                      // 받는 사람을 적었는지 여부
-        lines: Array.isArray(cfg.l) ? cfg.l.length : 0,      // 문구 줄 수
-        custom: !!cfg.customLines,                           // 문구를 직접 고쳤는지
-      });
-    },
+    // 링크를 만들어 복사한 시점
+    create(cfg){ send('create', payload(cfg)); },
 
-    // 받는 사람이 링크를 열었다
-    open(cfg){ send('open', { th: cfg.th, qlen: (cfg.q || '').length }); },
+    // 받는 사람이 링크를 연 시점.
+    // 주소창을 직접 고쳐 만든 링크는 create 기록이 없으므로 여기서도 내용을 남긴다.
+    open(cfg){ send('open', payload(cfg)); },
 
-    // 끝까지 눌렀다. 여기까지 온 비율이 이 서비스의 성적표다.
     yes(escapes){ send('yes', { esc: escapes }); },
-
-    // 열었지만 '응'을 누르지 않고 떠났다
     leave(escapes, done){ if (!done) send('leave', { esc: escapes }); },
   };
 })();
