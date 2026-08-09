@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>sayyes.me — 스토리용</title>
+<style>
+  /* 인스타 스토리(9:16) 화면녹화용. 폰에서 전체화면으로 열고 그대로 녹화하면 된다.
+     상하 여백은 인스타 UI(프로필·답장창·스티커)가 가리는 영역을 피한 것. */
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(170deg,#ffe4ef 0%,#fff3ec 50%,#ffe7f3 100%);
+    color:#3d2431;user-select:none;-webkit-user-select:none;touch-action:none;
+  }
+  .safe{
+    height:100dvh;display:flex;flex-direction:column;align-items:center;
+    padding:13vh 24px 15vh;text-align:center;
+  }
+
+  .hook{font-size:clamp(30px,9vw,44px);font-weight:900;line-height:1.25;letter-spacing:-.035em;word-break:keep-all}
+  .hook em{font-style:normal;color:#ff4f8b}
+  .lead{margin-top:12px;font-size:clamp(15px,4.2vw,19px);font-weight:700;color:#a8778c}
+
+  /* 데모 무대 */
+  .stage{
+    position:relative;flex:1;width:100%;margin-top:22px;overflow:hidden;
+    background:rgba(255,255,255,.62);border:1px solid rgba(255,107,157,.24);
+    border-radius:28px;box-shadow:0 16px 40px rgba(200,110,150,.16);
+  }
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px}
+  .face{font-size:clamp(44px,13vw,64px);line-height:1;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+  .q{font-size:clamp(20px,5.6vw,26px);font-weight:900;margin-top:14px;letter-spacing:-.02em;word-break:keep-all}
+  .sub{font-size:clamp(14px,3.8vw,17px);font-weight:700;color:#a8778c;margin-top:10px;min-height:24px;transition:opacity .16s}
+  .btns{display:flex;gap:12px;margin-top:26px;min-height:52px;align-items:center}
+  .btn{
+    font-family:inherit;font-size:clamp(16px,4.4vw,19px);font-weight:800;
+    padding:14px 30px;border:none;border-radius:999px;white-space:nowrap;
+    transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .2s;
+  }
+  .yes{background:linear-gradient(135deg,#ff6b9d,#ff8fb1);color:#fff;box-shadow:0 7px 20px rgba(255,107,157,.42)}
+  .no{background:#fff;color:#c08fa2;box-shadow:0 4px 14px rgba(180,120,150,.2)}
+  .no.loose{position:absolute;z-index:6;transition:left .24s cubic-bezier(.22,1,.36,1),top .24s cubic-bezier(.22,1,.36,1),transform .24s,opacity .24s}
+
+  .finger{
+    position:absolute;font-size:clamp(30px,8vw,40px);z-index:7;pointer-events:none;left:0;top:0;
+    margin:-8px 0 0 -10px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.22));
+    transition:transform .6s cubic-bezier(.4,0,.25,1),opacity .3s;
+  }
+  .finger.tap{animation:tapPop .3s}
+  @keyframes tapPop{50%{scale:.76}}
+
+  .done{
+    position:absolute;inset:0;z-index:9;display:none;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:22px;
+    background:linear-gradient(165deg,#ffdeea,#fff2e8);border-radius:27px;
+  }
+  .done.on{display:flex;animation:fade .35s}
+  @keyframes fade{from{opacity:0}}
+  .done .big{font-size:clamp(52px,15vw,74px);animation:pop .5s cubic-bezier(.34,1.8,.64,1)}
+  @keyframes pop{from{transform:scale(0)}}
+  .done h2{font-size:clamp(21px,5.8vw,27px);font-weight:900;margin-top:12px}
+  .done .stat{margin-top:16px;padding:9px 18px;border-radius:14px;background:rgba(255,255,255,.8);font-size:clamp(13px,3.6vw,15px);font-weight:800;color:#ff4f8b}
+  .spark{position:absolute;z-index:10;pointer-events:none;font-size:22px;animation:spark .85s ease-out forwards}
+  @keyframes spark{to{transform:translate(var(--tx),var(--ty)) rotate(var(--r));opacity:0}}
+
+  .url{
+    margin-top:20px;font-size:clamp(16px,4.6vw,20px);font-weight:900;letter-spacing:-.01em;
+    color:#fff;background:#3d2431;padding:13px 26px;border-radius:999px;
+    box-shadow:0 8px 22px rgba(61,36,49,.28);
+  }
+  .url span{color:#ff8fb1}
+</style>
+</head>
+<body>
+
+<div class="safe">
+  <div class="hook">'싫어'를 누르면<br><em>버튼이 도망간다</em></div>
+  <div class="lead">거절당하기 싫을 때 보내는 링크</div>
+
+  <div class="stage" id="stage">
+    <div class="screen">
+      <div class="face" id="face">🥺</div>
+      <div class="q" id="q"></div>
+      <div class="sub" id="sub"></div>
+      <div class="btns">
+        <button class="btn yes" id="yes"></button>
+        <button class="btn no" id="no"></button>
+      </div>
+    </div>
+    <div class="finger" id="finger">👆</div>
+    <div class="done" id="done">
+      <div class="big">🥰</div>
+      <h2 id="doneT"></h2>
+      <div class="stat" id="stat"></div>
+    </div>
+  </div>
+
+  <div class="url">say<span>yes</span> 링크 만들기</div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  const S = window.SAYYES, $ = id => document.getElementById(id);
+  const stage = $('stage'), finger = $('finger'), noB = $('no'), yesB = $('yes');
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // 스토리에서 한 바퀴가 짧아야 하므로 문구를 세게 추린다
+  const SHOWS = [
+    { q:'나 용서해줄래?', y:'응',   n:'싫어',
+      l:['제발...','어? 손가락 미끄러졌지','그 버튼은 안 눌려','계속 해봐 ㅋㅋ','그냥 응 눌러주라'],
+      dt:'고마워!' },
+    { q:'나랑 사귈래?',   y:'좋아', n:'싫어',
+      l:['두근두근...','그거 잘못 눌렀지?','그 버튼은 장식이야','왜 자꾸 그쪽으로 가','좋아 누를 때까지 안 끝남'],
+      dt:'우리 이제 1일!' }
+  ];
+
+  let show = 0, escapes = 0;
+
+  function paint(){
+    const c = SHOWS[show];
+    $('q').textContent = c.q;
+    $('sub').textContent = c.l[0];
+    $('face').textContent = S.FACES[0];
+    yesB.textContent = c.y;
+    noB.textContent = c.n;
+    $('doneT').textContent = c.dt;
+  }
+
+  function reset(){
+    escapes = 0;
+    noB.className = 'btn no';
+    noB.style.cssText = '';
+    yesB.style.transform = '';
+    $('done').classList.remove('on');
+    paint();
+  }
+
+  function detach(){
+    if (noB.classList.contains('loose')) return;
+    const s = stage.getBoundingClientRect(), r = noB.getBoundingClientRect();
+    noB.style.width = r.width + 'px';
+    noB.style.left = (r.left - s.left) + 'px';
+    noB.style.top  = (r.top - s.top) + 'px';
+    noB.classList.add('loose');
+  }
+
+  function bump(px, py){
+    const c = SHOWS[show];
+    const s = stage.getBoundingClientRect(), yr = yesB.getBoundingClientRect();
+    detach();
+    const t = S.pickSpot({
+      w: noB.offsetWidth, h: noB.offsetHeight,
+      boxW: stage.clientWidth, boxH: stage.clientHeight,
+      curX: parseFloat(noB.style.left) || 0,
+      curY: parseFloat(noB.style.top) || 0,
+      px: px, py: py,
+      avoid: [{x: yr.left - s.left, y: yr.top - s.top, w: yr.width, h: yr.height}]
+    });
+    noB.style.left = t.x + 'px';
+    noB.style.top  = t.y + 'px';
+    noB.style.transform = 'rotate(' + ((Math.random()*22)-11).toFixed(1) + 'deg)';
+    escapes++;
+
+    const i = Math.min(escapes, c.l.length - 1);
+    const fi = Math.min(Math.floor(i / Math.max(c.l.length-1,1) * (S.FACES.length-1)), S.FACES.length-1);
+    const sub = $('sub');
+    sub.style.opacity = 0;
+    setTimeout(()=>{ sub.textContent = c.l[i]; $('face').textContent = S.FACES[fi]; sub.style.opacity = 1; }, 110);
+
+    yesB.style.transform = 'scale(' + Math.min(1 + escapes * .12, 1.9) + ')';
+    noB.style.opacity = Math.max(1 - escapes * .06, .5);
+  }
+
+  function spark(){
+    const el = document.createElement('div');
+    el.className = 'spark';
+    el.textContent = ['❤️','💕','💗','✨'][Math.floor(Math.random()*4)];
+    el.style.left = (stage.clientWidth/2) + 'px';
+    el.style.top  = (stage.clientHeight/2) + 'px';
+    el.style.setProperty('--tx', ((Math.random()-.5) * stage.clientWidth * 1.3).toFixed(0) + 'px');
+    el.style.setProperty('--ty', ((Math.random()-.5) * stage.clientHeight * 1.3).toFixed(0) + 'px');
+    el.style.setProperty('--r', (Math.random()*540-270).toFixed(0) + 'deg');
+    stage.appendChild(el);
+    setTimeout(()=>el.remove(), 900);
+  }
+
+  function center(el){
+    const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+    return {x: r.left - s.left + r.width/2, y: r.top - s.top + r.height/2};
+  }
+  function moveFinger(x, y, ms){
+    finger.style.transitionDuration = ms + 'ms';
+    finger.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    return sleep(ms);
+  }
+  async function tap(){
+    finger.classList.add('tap');
+    await sleep(290);
+    finger.classList.remove('tap');
+  }
+
+  // 한 바퀴 약 8초. 녹화해서 그대로 스토리에 올리면 된다.
+  async function loop(){
+    while (true){
+      reset();
+      finger.style.opacity = '1';
+      finger.style.transitionDuration = '0ms';
+      finger.style.transform = 'translate(' + (stage.clientWidth/2) + 'px,' + (stage.clientHeight + 50) + 'px)';
+      await sleep(500);
+
+      for (let i = 0; i < 4; i++){
+        const p = center(noB);
+        await moveFinger(p.x, p.y, 560);
+        await tap();
+        bump(p.x, p.y);
+        await sleep(380);
+      }
+
+      const y = center(yesB);
+      await moveFinger(y.x, y.y, 560);
+      await tap();
+      $('stat').textContent = '"' + SHOWS[show].n + '" 버튼이 ' + escapes + '번 도망갔어';
+      $('done').classList.add('on');
+      for (let i = 0; i < 20; i++) setTimeout(spark, i * 55);
+
+      await sleep(2200);
+      finger.style.opacity = '0';
+      await sleep(600);
+      show = (show + 1) % SHOWS.length;   // 다음 바퀴는 다른 상황으로
+    }
+  }
+
+  paint();
+  loop();
+})();
+</script>
+</body>
+</html>
