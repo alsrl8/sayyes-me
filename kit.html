@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>스토리 올리기</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(170deg,#ffe9f2,#fff4ee);color:#3d2431;
+    min-height:100dvh;padding:32px 20px 44px;line-height:1.5;
+  }
+  .in{max-width:420px;margin:0 auto}
+  h1{font-size:24px;font-weight:900;letter-spacing:-.02em;text-align:center}
+  .sh{margin-top:8px;font-size:14px;font-weight:600;color:#96798a;text-align:center}
+
+  .step{margin-top:22px;background:#fff;border-radius:20px;padding:20px;box-shadow:0 6px 20px rgba(200,120,160,.12)}
+  .n{
+    display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+    border-radius:50%;background:#ff6b9d;color:#fff;font-size:13px;font-weight:900;
+  }
+  .t{display:inline-block;margin-left:8px;font-size:16px;font-weight:900;vertical-align:middle}
+  .d{margin-top:10px;font-size:13.5px;font-weight:600;color:#96798a;word-break:keep-all}
+
+  .btn{
+    display:block;width:100%;margin-top:14px;padding:16px;border:none;border-radius:14px;
+    font-family:inherit;font-size:16px;font-weight:900;text-align:center;text-decoration:none;
+    background:linear-gradient(135deg,#ff6b9d,#ff8fb1);color:#fff;
+    box-shadow:0 6px 18px rgba(255,107,157,.36);cursor:pointer;
+  }
+  .btn.ghost{background:#f5eef2;color:#3d2431;box-shadow:none}
+  .btn:active{filter:brightness(.96)}
+
+  video{width:100%;margin-top:14px;border-radius:14px;background:#000;display:block}
+  .url{
+    margin-top:10px;padding:11px 13px;border-radius:11px;background:#faf5f8;
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#96798a;word-break:break-all;
+  }
+  .done{margin-top:26px;text-align:center;font-size:13px;font-weight:700;color:#c39ab0}
+</style>
+</head>
+<body>
+<div class="in">
+  <h1>스토리 올리기</h1>
+  <p class="sh">아무것도 타이핑할 필요 없어요</p>
+
+  <div class="step">
+    <span class="n">1</span><span class="t">영상 저장</span>
+    <p class="d">버튼을 누르면 저장돼요. 안 되면 아래 영상을 길게 눌러 "동영상 저장"을 고르세요.</p>
+    <a class="btn" id="dl" href="story-short.mp4" download="sayyes-story.mp4">영상 저장 (8.6초)</a>
+    <video src="story-short.mp4" controls playsinline muted loop preload="metadata"></video>
+    <a class="btn ghost" href="story.mp4" download="sayyes-story-long.mp4" style="margin-top:10px">17초 버전이 필요하면</a>
+  </div>
+
+  <div class="step">
+    <span class="n">2</span><span class="t">링크 복사</span>
+    <p class="d">스토리 링크 스티커에 붙여넣을 주소예요.</p>
+    <button class="btn" id="copy">링크 복사</button>
+    <div class="url" id="u"></div>
+  </div>
+
+  <div class="step">
+    <span class="n">3</span><span class="t">인스타에 올리기</span>
+    <p class="d">
+      인스타 앱 → 스토리 → 방금 저장한 영상 선택 →
+      스티커에서 <b>링크</b> → 길게 눌러 <b>붙여넣기</b> → 공유
+    </p>
+    <a class="btn ghost" href="instagram://story-camera">인스타 스토리 열기</a>
+  </div>
+
+  <p class="done">sayyes.me</p>
+</div>
+
+<script>
+  const url = new URL('.', location.href).href;
+  document.getElementById('u').textContent = url;
+  document.getElementById('copy').onclick = async e => {
+    const b = e.target;
+    try { await navigator.clipboard.writeText(url); }
+    catch { const t=document.createElement('textarea'); t.value=url; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+    b.textContent = '복사됐어요!';
+    setTimeout(()=>b.textContent='링크 복사', 1500);
+  };
+</script>
+</body>
+</html>
