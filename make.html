@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sayyes.me — 안 눌리는 버튼이 있는 링크 만들기</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="sayyes.me">
+<meta property="og:description" content="'싫어' 버튼이 도망가는 링크를 만들어 보내세요">
+<meta property="og:site_name" content="sayyes.me">
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --line:#ece4e8; --ink:#3d2431; --muted:#977a88; --accent:#ff6b9d;
+    --field:#fdfbfc; --panel:#fff;
+  }
+  body{
+    font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    background:#faf6f8;color:var(--ink);line-height:1.5;
+  }
+
+  header{padding:34px 24px 8px;text-align:center}
+  header .logo{font-size:24px;font-weight:900;letter-spacing:-.02em}
+  header .logo span{color:var(--accent)}
+  header p{margin-top:8px;color:var(--muted);font-size:15px;font-weight:600}
+
+  .wrap{
+    max-width:1080px;margin:0 auto;padding:24px;
+    display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start;
+  }
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
+  .panel + .panel{margin-top:18px}
+  h2{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin-bottom:14px}
+
+  .field{margin-bottom:16px}
+  .field:last-child{margin-bottom:0}
+  label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
+  label .opt{color:var(--muted);font-weight:600;margin-left:5px}
+  .hint{font-size:12px;color:var(--muted);font-weight:600;margin-top:6px}
+
+  input[type=text],textarea{
+    width:100%;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);
+    padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;
+    background:var(--field);transition:border-color .15s;resize:vertical;
+  }
+  input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent);background:#fff}
+  textarea{line-height:1.7;min-height:150px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    font-family:inherit;font-size:14px;font-weight:700;padding:9px 15px;
+    border:1.5px solid var(--line);border-radius:999px;background:#fff;
+    color:var(--ink);cursor:pointer;transition:.15s;
+  }
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .themes{display:flex;gap:10px}
+  .sw{
+    width:38px;height:38px;border-radius:12px;border:3px solid transparent;
+    cursor:pointer;padding:0;transition:.15s;
+  }
+  .sw.on{border-color:var(--ink)}
+
+  /* 미리보기 */
+  .side{position:sticky;top:24px}
+  .phone{
+    width:300px;height:610px;margin:0 auto;
+    border:11px solid #26222a;border-radius:40px;overflow:hidden;
+    box-shadow:0 18px 44px rgba(60,30,50,.2);background:#000;
+  }
+  .phone iframe{width:100%;height:100%;border:0;display:block}
+  .side .cap{text-align:center;font-size:12px;color:var(--muted);font-weight:700;margin-top:10px}
+
+  .linkbox{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px}
+  .url{
+    width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+    padding:10px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);
+    color:var(--muted);word-break:break-all;height:72px;resize:none;
+  }
+  .acts{display:flex;gap:8px;margin-top:10px}
+  .btn{
+    flex:1;font-family:inherit;font-size:14px;font-weight:800;padding:12px;
+    border:none;border-radius:12px;cursor:pointer;transition:.15s;
+  }
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.ghost{background:#f4eef1;color:var(--ink);text-align:center;text-decoration:none;line-height:1.4}
+  .meta{font-size:12px;color:var(--muted);font-weight:700;margin-top:9px;text-align:center}
+  .warn{color:#d9534f}
+
+  @media (max-width:900px){
+    .wrap{grid-template-columns:1fr;padding:16px}
+    .side{position:static;order:-1}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">say<span>yes</span>.me</div>
+  <p>'싫어' 버튼이 도망가는 링크를 만들어 보내세요</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 왼쪽: 편집 -->
+  <div>
+    <div class="panel">
+      <h2>어떤 걸 물어볼까요</h2>
+      <div class="field">
+        <div class="chips" id="presets"></div>
+        <div class="hint">고르면 아래 내용이 통째로 채워져요. 이후 마음대로 고치세요.</div>
+      </div>
+      <div class="field">
+        <label>색</label>
+        <div class="themes" id="themes"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>질문 화면</h2>
+      <div class="field">
+        <label>받는 사람<span class="opt">선택</span></label>
+        <input type="text" id="f_t" placeholder="지민" maxlength="20">
+        <div class="hint">적으면 질문 위에 "지민에게"로 붙어요.</div>
+      </div>
+      <div class="field">
+        <label>질문</label>
+        <input type="text" id="f_q" placeholder="나 용서해줄래?" maxlength="60">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>눌리는 버튼</label>
+          <input type="text" id="f_y" placeholder="응" maxlength="12">
+        </div>
+        <div class="field">
+          <label>도망가는 버튼</label>
+          <input type="text" id="f_n" placeholder="싫어" maxlength="12">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>도망칠 때 나오는 말</h2>
+      <div class="field">
+        <textarea id="f_l" spellcheck="false"></textarea>
+        <div class="hint">
+          한 줄에 하나씩. <b>첫 줄</b>은 화면이 처음 뜰 때 보이고, 그 다음부터는 버튼이 도망칠 때마다 순서대로 나와요.
+          마지막 줄에 도달하면 계속 그 줄이 유지돼요.
+          <button class="chip" id="resetLines" style="margin-top:8px;font-size:12px;padding:6px 12px">기본 문구로 되돌리기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>눌렀을 때 나오는 화면</h2>
+      <div class="field">
+        <label>제목</label>
+        <input type="text" id="f_dt" placeholder="고마워!" maxlength="40">
+      </div>
+      <div class="field">
+        <label>설명</label>
+        <input type="text" id="f_ds" placeholder="이제 화 풀린 걸로 할게" maxlength="60">
+      </div>
+      <div class="field">
+        <label>보낸 사람<span class="opt">선택</span></label>
+        <input type="text" id="f_f" placeholder="민기" maxlength="20">
+      </div>
+    </div>
+  </div>
+
+  <!-- 오른쪽: 미리보기 + 링크 -->
+  <div class="side">
+    <div class="phone"><iframe id="pv" title="미리보기"></iframe></div>
+    <div class="cap">미리보기 — 여기서도 눌러볼 수 있어요</div>
+
+    <div class="linkbox">
+      <h2>보낼 링크</h2>
+      <textarea class="url" id="url" readonly spellcheck="false"></textarea>
+      <div class="acts">
+        <button class="btn primary" id="copy">링크 복사</button>
+        <a class="btn ghost" id="open" target="_blank" rel="noopener">새 탭에서 열기</a>
+      </div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  const S = window.SAYYES, D = S.DEFAULTS;
+  const $ = id => document.getElementById(id);
+  const F = {t:$('f_t'), q:$('f_q'), y:$('f_y'), n:$('f_n'), dt:$('f_dt'), ds:$('f_ds'), f:$('f_f')};
+  let theme = D.th;
+
+  // 프리셋 칩
+  S.PRESETS.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' on' : '');
+    b.textContent = p.chip;
+    b.onclick = () => {
+      document.querySelectorAll('#presets .chip').forEach(c => c.classList.remove('on'));
+      b.classList.add('on');
+      apply(p);
+    };
+    $('presets').appendChild(b);
+  });
+
+  // 테마 스와치
+  S.THEMES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'sw';
+    b.style.background = t.c;
+    b.title = t.label;
+    b.dataset.k = t.key;
+    b.onclick = () => { theme = t.key; paintThemes(); sync(); };
+    $('themes').appendChild(b);
+  });
+  function paintThemes(){
+    document.querySelectorAll('.sw').forEach(s => s.classList.toggle('on', s.dataset.k === theme));
+  }
+
+  function apply(p){
+    F.q.value = p.q; F.y.value = p.y; F.n.value = p.n;
+    F.dt.value = p.dt; F.ds.value = p.ds;
+    $('f_l').value = p.l.join('\n');
+    theme = p.th;
+    paintThemes(); sync();
+  }
+
+  $('resetLines').onclick = () => { $('f_l').value = D.l.join('\n'); sync(); };
+
+  // 폼 → 설정 객체. 빈 칸은 기본값으로 되돌린다.
+  function read(){
+    const l = $('f_l').value.split('\n').map(s => s.trim()).filter(Boolean);
+    return {
+      t: F.t.value.trim(),
+      q: F.q.value.trim() || D.q,
+      y: F.y.value.trim() || D.y,
+      n: F.n.value.trim() || D.n,
+      f: F.f.value.trim(),
+      dt: F.dt.value.trim() || D.dt,
+      ds: F.ds.value.trim() || D.ds,
+      th: theme,
+      l: l.length ? l : D.l
+    };
+  }
+
+  // 기본값과 같은 항목은 URL 에서 뺀다 — 링크가 길어질수록 카톡에서 안 예쁘다
+  function link(cfg){
+    const diff = {};
+    for (const k in D){
+      if (JSON.stringify(cfg[k]) !== JSON.stringify(D[k])) diff[k] = cfg[k];
+    }
+    const base = new URL('p.html', location.href).href;
+    return Object.keys(diff).length ? base + '?d=' + S.encode(diff) : base;
+  }
+
+  let timer = null;
+  function sync(){
+    const cfg = read();
+    const u = link(cfg);
+    $('url').value = u;
+    $('open').href = u;
+
+    // 남의 신상이 들어가면 링크 자체를 못 만들게 한다. 받는 쪽에서도 한 번 더 막힌다.
+    const v = S.inspect(cfg);
+    $('copy').disabled = !v.ok;
+    $('copy').style.opacity = v.ok ? '' : '.45';
+
+    const n = u.length;
+    const warn = n > 1800;
+    if (!v.ok){
+      $('meta').innerHTML = '<span class="warn">' + v.kind + '처럼 보이는 내용이 있어요. 빼야 링크를 만들 수 있어요.</span>';
+    } else {
+      $('meta').innerHTML = '<span class="' + (warn ? 'warn' : '') + '">' + n + '자</span>'
+        + (warn ? ' — 너무 길어요. 도망 문구를 줄여보세요.' : '');
+    }
+
+    // 타이핑 중에 매번 새로고침하면 깜빡이니 잠깐 기다린다
+    clearTimeout(timer);
+    timer = setTimeout(() => { $('pv').src = u; }, 380);
+  }
+
+  Object.values(F).forEach(el => el.addEventListener('input', sync));
+  $('f_l').addEventListener('input', sync);
+
+  $('copy').onclick = async () => {
+    const btn = $('copy'), u = $('url').value;
+    try {
+      await navigator.clipboard.writeText(u);
+    } catch (e) {
+      // 로컬 파일로 열었을 때 등 클립보드 API 가 막히는 경우
+      $('url').select();
+      document.execCommand('copy');
+    }
+    btn.textContent = '복사됐어요!';
+    setTimeout(() => btn.textContent = '링크 복사', 1400);
+  };
+
+  apply(S.PRESETS[0]);
+  $('pv').src = link(read());
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>sayyes.me</title>
+
+<!-- 카카오톡 링크 카드. 정적 호스팅이라 내용별로 못 바꾼다(README 참고) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="버튼 두 개. 근데 하나는 안 눌려.">
+<meta property="og:description" content="누가 너한테 물어볼 게 있대">
+<meta property="og:site_name" content="sayyes.me">
+
+<style>
+  :root{
+    --bg1:#ffe9f2; --bg2:#fff5ef; --bg3:#ffeaf4;
+    --accent:#ff6b9d; --accent2:#ff8fb1;
+    --text:#4a2c3a; --muted:#a8778c; --soft:#c08fa2; --brand:#d3a6b8;
+  }
+  body[data-th="purple"]{--bg1:#efe8ff;--bg2:#faf0ff;--bg3:#f1e7ff;--accent:#8b5cf6;--accent2:#a78bfa;--text:#33265c;--muted:#8577b5;--soft:#9d8fc4;--brand:#b7a9dd}
+  body[data-th="mint"]{--bg1:#e2f6f0;--bg2:#f0fbf6;--bg3:#e4f7f1;--accent:#14b8a6;--accent2:#5eead4;--text:#1f4a44;--muted:#6ba79d;--soft:#87b8b0;--brand:#9fcdc5}
+  body[data-th="peach"]{--bg1:#ffeee2;--bg2:#fff8f0;--bg3:#ffeadb;--accent:#fb7a4b;--accent2:#ffa07a;--text:#5c3520;--muted:#b58565;--soft:#c99a7c;--brand:#e0b193}
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%);
+    color:var(--text);
+    display:flex;align-items:center;justify-content:center;
+    user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  }
+
+  #bg{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .float{position:absolute;bottom:-40px;font-size:22px;opacity:.35;animation:rise linear forwards}
+  @keyframes rise{to{transform:translateY(-115vh) rotate(var(--r));opacity:0}}
+
+  .card{position:relative;z-index:1;width:100%;max-width:420px;padding:32px 24px;text-align:center}
+  .face{font-size:76px;line-height:1;display:block;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+
+  .to{font-size:15px;color:var(--brand);margin-top:18px;font-weight:700;min-height:20px}
+  h1{font-size:31px;line-height:1.35;margin-top:6px;font-weight:800;letter-spacing:-.02em;word-break:keep-all}
+  .sub{margin-top:14px;font-size:16px;color:var(--muted);font-weight:600;min-height:26px;transition:opacity .18s}
+
+  .btns{display:flex;gap:14px;justify-content:center;align-items:center;margin-top:38px;min-height:62px}
+  button{
+    font-family:inherit;font-size:19px;font-weight:800;padding:15px 34px;
+    border:none;border-radius:999px;cursor:pointer;max-width:44vw;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1),opacity .18s;
+  }
+  #yes{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.16);transform-origin:center}
+  #yes:active{filter:brightness(.95)}
+  #no{background:#fff;color:var(--soft);box-shadow:0 4px 14px rgba(120,80,100,.16);z-index:5}
+  #no.loose{position:fixed;transition:left .22s cubic-bezier(.22,1,.36,1),top .22s cubic-bezier(.22,1,.36,1),transform .22s,opacity .22s}
+
+  #done{
+    position:fixed;inset:0;z-index:20;display:none;
+    flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(165deg,var(--bg1),var(--bg2));padding:24px;text-align:center;
+  }
+  #done.on{display:flex;animation:fade .4s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  #done .big{font-size:88px;animation:pop .55s cubic-bezier(.34,1.8,.64,1)}
+  @keyframes pop{from{transform:scale(0)}}
+  #done h2{font-size:29px;margin-top:18px;font-weight:800;word-break:keep-all}
+  #done p{margin-top:12px;color:var(--muted);font-size:16px;font-weight:600;word-break:keep-all}
+  .stat{margin-top:26px;padding:12px 20px;border-radius:16px;background:rgba(255,255,255,.7);font-size:15px;font-weight:700;color:var(--accent)}
+  .cta{
+    margin-top:30px;padding:14px 28px;border-radius:999px;background:var(--text);
+    color:#fff;font-size:16px;font-weight:800;text-decoration:none;display:inline-block;
+  }
+  .brand{position:fixed;bottom:14px;left:0;right:0;z-index:10;text-align:center;font-size:13px;font-weight:800;color:var(--brand);letter-spacing:.04em}
+  .brand a{color:inherit;text-decoration:none}
+  .brand .note{display:block;margin-top:4px;font-size:10.5px;font-weight:600;opacity:.75;letter-spacing:0}
+  .brand .note a{text-decoration:underline}
+
+  /* 열지 않고 막는 화면 */
+  #blocked{
+    position:fixed;inset:0;z-index:40;display:none;
+    flex-direction:column;align-items:center;justify-content:center;
+    background:#fbf9fa;padding:32px 26px;text-align:center;color:#4a4046;
+  }
+  #blocked.on{display:flex}
+  #blocked .ic{font-size:54px}
+  #blocked h2{font-size:22px;font-weight:800;margin-top:16px}
+  #blocked p{font-size:14.5px;font-weight:600;color:#8b8087;margin-top:12px;line-height:1.6;word-break:keep-all;max-width:340px}
+  #blocked a{margin-top:24px;font-size:13px;font-weight:800;color:#a0949b}
+  .burst{position:fixed;pointer-events:none;z-index:25;font-size:26px;animation:burst .9s ease-out forwards}
+  @keyframes burst{to{transform:translate(var(--tx),var(--ty)) rotate(var(--r));opacity:0}}
+  @media (max-width:360px){h1{font-size:27px}button{padding:14px 26px;font-size:18px}}
+</style>
+</head>
+<body data-th="pink">
+
+<div id="bg"></div>
+
+<div class="card">
+  <span class="face" id="face">🥺</span>
+  <div class="to" id="to"></div>
+  <h1 id="q"></h1>
+  <div class="sub" id="sub"></div>
+  <div class="btns">
+    <button id="yes"></button>
+    <button id="no"></button>
+  </div>
+</div>
+
+<div class="brand">
+  <a href="index.html">sayyes.me</a>
+  <span class="note">이 내용은 보낸 사람이 직접 쓴 거예요 · <a href="index.html#report">신고</a></span>
+</div>
+
+<div id="blocked">
+  <div class="ic">🚫</div>
+  <h2>이 링크는 열 수 없어요</h2>
+  <p><b id="bKind"></b>로 보이는 정보가 들어 있어요.<br>다른 사람의 개인정보가 담긴 링크는 열지 않습니다.</p>
+  <a href="index.html">sayyes.me가 뭔가요?</a>
+</div>
+
+<div id="done">
+  <span class="big" id="doneFace">🥰</span>
+  <h2 id="doneTitle"></h2>
+  <p id="doneSub"></p>
+  <div class="stat" id="stat"></div>
+  <a class="cta" href="make.html">나도 만들어서 보내기</a>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  const D = window.SAYYES.DEFAULTS;
+  const FACES = window.SAYYES.FACES;
+  const decode = window.SAYYES.decode;
+
+  // URL 에 실린 내용을 기본값 위에 덮어쓴다. 깨진 링크는 조용히 기본값으로.
+  let cfg = Object.assign({}, D);
+  try {
+    const d = new URLSearchParams(location.search).get('d');
+    if (d) cfg = Object.assign(cfg, decode(d));
+  } catch (e) { /* 기본값 유지 */ }
+
+  // 주소창을 직접 고쳐 들어와도 여기를 거친다
+  cfg = window.SAYYES.clamp(cfg);
+  const verdict = window.SAYYES.inspect(cfg);
+  if (!verdict.ok){
+    document.getElementById('bKind').textContent = verdict.kind;
+    document.getElementById('blocked').classList.add('on');
+    return;
+  }
+
+  const lines = (Array.isArray(cfg.l) && cfg.l.length) ? cfg.l : D.l;
+
+  document.body.dataset.th = ['pink','purple','mint','peach'].includes(cfg.th) ? cfg.th : 'pink';
+  const $ = id => document.getElementById(id);
+  $('q').textContent   = cfg.q;
+  $('to').textContent  = cfg.t ? cfg.t + '에게' : '';
+  $('yes').textContent = cfg.y;
+  $('no').textContent  = cfg.n;
+  $('sub').textContent = lines[0];
+  $('face').textContent = FACES[0];
+  $('doneTitle').textContent = cfg.dt;
+  $('doneSub').textContent   = cfg.f ? cfg.ds + ' — ' + cfg.f : cfg.ds;
+
+  const noBtn = $('no'), yesBtn = $('yes'), sub = $('sub'), face = $('face');
+  let escapes = 0, cooling = false, finished = false;
+
+  // 첫 도망: 지금 자리를 화면 좌표로 굳힌 뒤 흐름에서 떼어낸다
+  function detach(){
+    if (noBtn.classList.contains('loose')) return;
+    const r = noBtn.getBoundingClientRect();
+    noBtn.style.width = r.width + 'px';
+    noBtn.style.left  = r.left + 'px';
+    noBtn.style.top   = r.top + 'px';
+    noBtn.classList.add('loose');
+  }
+
+  // 도망 위치는 공용 규칙으로 고른다. '응' 버튼은 절대 가리지 않는다.
+  function flee(px, py){
+    const r  = noBtn.getBoundingClientRect();
+    const yr = yesBtn.getBoundingClientRect();   // 커진 상태가 그대로 반영된다
+    const t = window.SAYYES.pickSpot({
+      w: noBtn.offsetWidth, h: noBtn.offsetHeight,
+      boxW: innerWidth, boxH: innerHeight,
+      curX: r.left, curY: r.top,
+      px: px, py: py,
+      avoid: [{x: yr.left, y: yr.top, w: yr.width, h: yr.height}]
+    });
+    noBtn.style.left = t.x + 'px';
+    noBtn.style.top  = t.y + 'px';
+    noBtn.style.transform = 'rotate(' + ((Math.random()*24)-12).toFixed(1) + 'deg)';
+  }
+
+  function bump(px, py){
+    if (finished || cooling) return;
+    cooling = true; setTimeout(()=>cooling=false, 220);
+
+    detach(); flee(px, py); escapes++;
+
+    const i = Math.min(escapes, lines.length - 1);
+    const fi = Math.min(Math.floor(i / Math.max(lines.length-1,1) * (FACES.length-1)), FACES.length-1);
+    sub.style.opacity = 0;
+    setTimeout(()=>{
+      sub.textContent = lines[i];
+      face.textContent = FACES[fi];
+      sub.style.opacity = 1;
+    }, 120);
+
+    yesBtn.style.transform = 'scale(' + Math.min(1 + escapes * .13, 2.4) + ')';
+    noBtn.style.opacity = Math.max(1 - escapes * .05, .45);
+  }
+
+  // 모바일·카톡 인앱엔 hover 가 없다. '누르려는 순간' 도망치는 게 본체.
+  ['pointerdown','touchstart','mousedown','click'].forEach(ev=>{
+    noBtn.addEventListener(ev, e=>{
+      e.preventDefault(); e.stopPropagation();
+      const x = e.clientX ?? (e.touches && e.touches[0] && e.touches[0].clientX) ?? innerWidth/2;
+      const y = e.clientY ?? (e.touches && e.touches[0] && e.touches[0].clientY) ?? innerHeight/2;
+      bump(x, y);
+    }, {passive:false});
+  });
+
+  // 데스크톱: 커서가 가까워지면 미리 도망
+  if (matchMedia('(hover: hover)').matches){
+    addEventListener('mousemove', e=>{
+      if (finished) return;
+      const r = noBtn.getBoundingClientRect();
+      const d = Math.hypot(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2));
+      if (d < 105) bump(e.clientX, e.clientY);
+    });
+  }
+
+  // 창이 줄어들면 화면 밖으로 나간 버튼을 회수
+  addEventListener('resize', ()=>{
+    if (!noBtn.classList.contains('loose')) return;
+    const w = noBtn.offsetWidth, h = noBtn.offsetHeight;
+    noBtn.style.left = Math.max(10, Math.min(parseFloat(noBtn.style.left) || 0, innerWidth  - w - 10)) + 'px';
+    noBtn.style.top  = Math.max(10, Math.min(parseFloat(noBtn.style.top)  || 0, innerHeight - h - 10)) + 'px';
+  });
+
+  yesBtn.addEventListener('click', ()=>{
+    finished = true;
+    $('stat').textContent = escapes === 0
+      ? '한 번에 눌러줬네 ❤️'
+      : '"' + cfg.n + '" 버튼이 ' + escapes + '번 도망갔어';
+    $('done').classList.add('on');
+    for (let i = 0; i < 34; i++) setTimeout(burst, i * 45);
+  });
+
+  function burst(){
+    const el = document.createElement('div');
+    el.className = 'burst';
+    el.textContent = ['❤️','💕','💗','🩷','✨','🥰'][Math.floor(Math.random()*6)];
+    el.style.left = (innerWidth/2) + 'px';
+    el.style.top  = (innerHeight/2) + 'px';
+    el.style.setProperty('--tx', ((Math.random()-.5) * innerWidth * 1.1).toFixed(0) + 'px');
+    el.style.setProperty('--ty', ((Math.random()-.5) * innerHeight * 1.1).toFixed(0) + 'px');
+    el.style.setProperty('--r', (Math.random()*720-360).toFixed(0) + 'deg');
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 950);
+  }
+
+  const bg = document.getElementById('bg');
+  setInterval(()=>{
+    if (document.hidden) return;
+    const el = document.createElement('div');
+    el.className = 'float';
+    el.textContent = ['🩷','💕','🤍'][Math.floor(Math.random()*3)];
+    el.style.left = (Math.random()*100) + '%';
+    el.style.animationDuration = (6 + Math.random()*5) + 's';
+    el.style.setProperty('--r', (Math.random()*80-40) + 'deg');
+    bg.appendChild(el);
+    setTimeout(()=>el.remove(), 11000);
+  }, 700);
+})();
+</script>
+</body>
+</html>
