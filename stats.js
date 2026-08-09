@@ -7,7 +7,7 @@
    ENDPOINT 가 비어 있으면 아무것도 전송하지 않는다. */
 window.STATS = (function(){
 
-  const ENDPOINT = '';   // Apps Script 웹 앱 URL (collector/apps-script.gs 참고)
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbw9RRr9OVGUVKkZttMZD-DBqlosqnBonkPlsqLnS7eSRAMtyN-KQdJdme6NF1_D6Jfz/exec';
 
   // 같은 사람이 만든 링크와 열린 기록을 이어보기 위한 임시 번호.
   // 탭을 닫으면 사라지고, 사람을 식별하지는 않는다.
