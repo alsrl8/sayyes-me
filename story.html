@@ -16,7 +16,7 @@
   }
   .safe{
     height:100dvh;display:flex;flex-direction:column;align-items:center;
-    padding:13vh 24px 15vh;text-align:center;
+    padding:10vh 22px 12vh;text-align:center;
   }
 
   .hook{font-size:clamp(30px,9vw,44px);font-weight:900;line-height:1.25;letter-spacing:-.035em;word-break:keep-all}
@@ -24,8 +24,9 @@
   .lead{margin-top:12px;font-size:clamp(15px,4.2vw,19px);font-weight:700;color:#a8778c}
 
   /* 데모 무대 */
+  /* 버튼이 카드 밖으로도 도망칠 수 있어야 화면이 시원하다 (overflow 를 막지 않는 이유) */
   .stage{
-    position:relative;flex:1;width:100%;margin-top:22px;overflow:hidden;
+    position:relative;flex:1;width:100%;margin-top:22px;
     background:rgba(255,255,255,.62);border:1px solid rgba(255,107,157,.24);
     border-radius:28px;box-shadow:0 16px 40px rgba(200,110,150,.16);
   }
@@ -42,10 +43,10 @@
   }
   .yes{background:linear-gradient(135deg,#ff6b9d,#ff8fb1);color:#fff;box-shadow:0 7px 20px rgba(255,107,157,.42)}
   .no{background:#fff;color:#c08fa2;box-shadow:0 4px 14px rgba(180,120,150,.2)}
-  .no.loose{position:absolute;z-index:6;transition:left .24s cubic-bezier(.22,1,.36,1),top .24s cubic-bezier(.22,1,.36,1),transform .24s,opacity .24s}
+  .no.loose{position:fixed;z-index:6;transition:left .24s cubic-bezier(.22,1,.36,1),top .24s cubic-bezier(.22,1,.36,1),transform .24s,opacity .24s}
 
   .finger{
-    position:absolute;font-size:clamp(30px,8vw,40px);z-index:7;pointer-events:none;left:0;top:0;
+    position:fixed;font-size:clamp(30px,8vw,40px);z-index:7;pointer-events:none;left:0;top:0;
     margin:-8px 0 0 -10px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.22));
     transition:transform .6s cubic-bezier(.4,0,.25,1),opacity .3s;
   }
@@ -63,7 +64,7 @@
   @keyframes pop{from{transform:scale(0)}}
   .done h2{font-size:clamp(21px,5.8vw,27px);font-weight:900;margin-top:12px}
   .done .stat{margin-top:16px;padding:9px 18px;border-radius:14px;background:rgba(255,255,255,.8);font-size:clamp(13px,3.6vw,15px);font-weight:800;color:#ff4f8b}
-  .spark{position:absolute;z-index:10;pointer-events:none;font-size:22px;animation:spark .85s ease-out forwards}
+  .spark{position:fixed;z-index:10;pointer-events:none;font-size:22px;animation:spark .85s ease-out forwards}
   @keyframes spark{to{transform:translate(var(--tx),var(--ty)) rotate(var(--r));opacity:0}}
 
   .url{
@@ -141,24 +142,30 @@
 
   function detach(){
     if (noB.classList.contains('loose')) return;
-    const s = stage.getBoundingClientRect(), r = noB.getBoundingClientRect();
+    const r = noB.getBoundingClientRect();
     noB.style.width = r.width + 'px';
-    noB.style.left = (r.left - s.left) + 'px';
-    noB.style.top  = (r.top - s.top) + 'px';
+    noB.style.left = r.left + 'px';
+    noB.style.top  = r.top + 'px';
     noB.classList.add('loose');
   }
 
+  const box = el => { const r = el.getBoundingClientRect(); return {x:r.left, y:r.top, w:r.width, h:r.height}; };
+  const HOOK = document.querySelector('.hook'),
+        LEAD = document.querySelector('.lead'),
+        URLB = document.querySelector('.url');
+
   function bump(px, py){
     const c = SHOWS[show];
-    const s = stage.getBoundingClientRect(), yr = yesB.getBoundingClientRect();
     detach();
     const t = S.pickSpot({
       w: noB.offsetWidth, h: noB.offsetHeight,
-      boxW: stage.clientWidth, boxH: stage.clientHeight,
+      boxW: innerWidth, boxH: innerHeight,      // 카드 안이 아니라 화면 전체를 쓴다
       curX: parseFloat(noB.style.left) || 0,
       curY: parseFloat(noB.style.top) || 0,
       px: px, py: py,
-      avoid: [{x: yr.left - s.left, y: yr.top - s.top, w: yr.width, h: yr.height}]
+      gap: 12,
+      // 글자와 '응' 버튼은 무슨 일이 있어도 가리지 않는다
+      avoid: [yesB, $('face'), $('q'), $('sub'), HOOK, LEAD, URLB].map(box)
     });
     noB.style.left = t.x + 'px';
     noB.style.top  = t.y + 'px';
@@ -179,19 +186,22 @@
     const el = document.createElement('div');
     el.className = 'spark';
     el.textContent = ['❤️','💕','💗','✨'][Math.floor(Math.random()*4)];
-    el.style.left = (stage.clientWidth/2) + 'px';
-    el.style.top  = (stage.clientHeight/2) + 'px';
-    el.style.setProperty('--tx', ((Math.random()-.5) * stage.clientWidth * 1.3).toFixed(0) + 'px');
-    el.style.setProperty('--ty', ((Math.random()-.5) * stage.clientHeight * 1.3).toFixed(0) + 'px');
+    el.style.left = (innerWidth/2) + 'px';
+    el.style.top  = (innerHeight/2) + 'px';
+    el.style.setProperty('--tx', ((Math.random()-.5) * innerWidth * 1.4).toFixed(0) + 'px');
+    el.style.setProperty('--ty', ((Math.random()-.5) * innerHeight * 1.1).toFixed(0) + 'px');
     el.style.setProperty('--r', (Math.random()*540-270).toFixed(0) + 'deg');
-    stage.appendChild(el);
+    document.body.appendChild(el);
     setTimeout(()=>el.remove(), 900);
   }
 
   function center(el){
-    const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
-    return {x: r.left - s.left + r.width/2, y: r.top - s.top + r.height/2};
+    const r = el.getBoundingClientRect();
+    return {x: r.left + r.width/2, y: r.top + r.height/2};
   }
+  // 👆 는 위를 가리키는 그림이라, 손가락을 버튼 아래에 둬야 손끝이 버튼을 짚는 모양이 된다.
+  // 버튼 한가운데에 놓으면 버튼을 덮어버린다.
+  const FINGER_DY = 30;
   function moveFinger(x, y, ms){
     finger.style.transitionDuration = ms + 'ms';
     finger.style.transform = 'translate(' + x + 'px,' + y + 'px)';
@@ -209,19 +219,19 @@
       reset();
       finger.style.opacity = '1';
       finger.style.transitionDuration = '0ms';
-      finger.style.transform = 'translate(' + (stage.clientWidth/2) + 'px,' + (stage.clientHeight + 50) + 'px)';
+      finger.style.transform = 'translate(' + (innerWidth/2) + 'px,' + (innerHeight + 50) + 'px)';
       await sleep(500);
 
       for (let i = 0; i < 4; i++){
         const p = center(noB);
-        await moveFinger(p.x, p.y, 560);
+        await moveFinger(p.x, p.y + FINGER_DY, 560);
         await tap();
         bump(p.x, p.y);
         await sleep(380);
       }
 
       const y = center(yesB);
-      await moveFinger(y.x, y.y, 560);
+      await moveFinger(y.x, y.y + FINGER_DY, 560);
       await tap();
       $('stat').textContent = '"' + SHOWS[show].n + '" 버튼이 ' + escapes + '번 도망갔어';
       $('done').classList.add('on');
