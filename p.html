@@ -128,6 +128,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="stats.js"></script>
 <script>
 (function(){
   const D = window.SAYYES.DEFAULTS;
@@ -149,6 +150,8 @@
     document.getElementById('blocked').classList.add('on');
     return;
   }
+
+  window.STATS.open(cfg);
 
   const lines = (Array.isArray(cfg.l) && cfg.l.length) ? cfg.l : D.l;
 
@@ -239,8 +242,11 @@
     noBtn.style.top  = Math.max(10, Math.min(parseFloat(noBtn.style.top)  || 0, innerHeight - h - 10)) + 'px';
   });
 
+  addEventListener('pagehide', ()=> window.STATS.leave(escapes, finished));
+
   yesBtn.addEventListener('click', ()=>{
     finished = true;
+    window.STATS.yes(escapes);
     $('stat').textContent = escapes === 0
       ? '한 번에 눌러줬네 ❤️'
       : '"' + cfg.n + '" 버튼이 ' + escapes + '번 도망갔어';

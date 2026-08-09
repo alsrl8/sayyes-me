@@ -192,9 +192,11 @@
 </div>
 
 <script src="config.js"></script>
+<script src="stats.js"></script>
 <script>
 (function(){
   const S = window.SAYYES, D = S.DEFAULTS;
+  let presetKey = null;   // 어떤 프리셋에서 출발했는지만 집계에 쓴다
   const $ = id => document.getElementById(id);
   const F = {t:$('f_t'), q:$('f_q'), y:$('f_y'), n:$('f_n'), dt:$('f_dt'), ds:$('f_ds'), f:$('f_f')};
   let theme = D.th;
@@ -227,6 +229,7 @@
   }
 
   function apply(p){
+    presetKey = p.key;
     F.q.value = p.q; F.y.value = p.y; F.n.value = p.n;
     F.dt.value = p.dt; F.ds.value = p.ds;
     $('f_l').value = p.l.join('\n');
@@ -302,8 +305,13 @@
     }
     btn.textContent = '복사됐어요!';
     setTimeout(() => btn.textContent = '링크 복사', 1400);
+
+    const cfg = read();
+    cfg.customLines = JSON.stringify(cfg.l) !== JSON.stringify(D.l);
+    window.STATS.create(cfg, presetKey);
   };
 
+  window.STATS.openMake();
   apply(S.PRESETS[0]);
   $('pv').src = link(read());
 })();
