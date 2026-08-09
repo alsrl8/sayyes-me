@@ -234,6 +234,7 @@
       await moveFinger(y.x, y.y + FINGER_DY, 560);
       await tap();
       $('stat').textContent = '"' + SHOWS[show].n + '" 버튼이 ' + escapes + '번 도망갔어';
+      noB.style.opacity = '0';        // 성공 화면 밖에 남아 떠 있으면 어색하다
       $('done').classList.add('on');
       for (let i = 0; i < 20; i++) setTimeout(spark, i * 55);
 
