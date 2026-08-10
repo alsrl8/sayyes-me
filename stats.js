@@ -23,8 +23,15 @@ window.STATS = (function(){
   /* Apps Script 는 preflight(OPTIONS) 를 처리하지 못한다.
      'application/json' 으로 보내면 preflight 가 붙어 전송 자체가 막히므로
      반드시 text/plain 으로 보낸다. 내용은 그대로 JSON 문자열이다. */
+  /* 만들기 화면의 폰 미리보기는 p.html 을 iframe 으로 띄운다.
+     그건 '링크가 열렸다'가 아니라 편집 중이라는 뜻이므로 기록하지 않는다.
+     이걸 안 막으면 편집할 때마다 열람 수가 늘어 통계가 통째로 망가진다. */
+  function inPreview(){
+    try { return window.self !== window.top; } catch (e) { return true; }
+  }
+
   function send(type, data){
-    if (!ENDPOINT) return;
+    if (!ENDPOINT || inPreview()) return;
     const body = JSON.stringify(Object.assign(
       { t: type, s: sid, ref: (document.referrer || '').slice(0, 120) },
       data || {}
