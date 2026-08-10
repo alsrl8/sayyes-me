@@ -67,6 +67,20 @@ function doGet(e){
 
   const from = Math.max(2, last - MAX_VIEW + 1);
   const rows = sh.getRange(from, 1, last - from + 1, 12).getValues().reverse();
+
+  // ?format=json 이면 순수 JSON 으로 돌려준다.
+  // HTML 은 iframe 안에 들어가서 브라우저 없이는 못 읽는다.
+  if (e.parameter.format === 'json'){
+    const out = rows.map(r => ({
+      at: Utilities.formatDate(new Date(r[0]), 'Asia/Seoul', 'MM-dd HH:mm:ss'),
+      t: r[1], q: r[2], to: r[3], from: r[4], y: r[5], n: r[6],
+      lines: r[7], th: r[8], esc: r[9], s: r[10], ref: r[11],
+    }));
+    return ContentService
+      .createTextOutput(JSON.stringify({ total: last - 1, rows: out }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   return HtmlService.createHtmlOutput(page_(rows, last - 1))
     .setTitle('sayyes 모니터링');
 }
@@ -89,13 +103,17 @@ function page_(rows, total){
     const when = Utilities.formatDate(new Date(r[0]), 'Asia/Seoul', 'MM-dd HH:mm');
     const cell = v => '<td>' + String(v == null ? '' : v)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</td>';
-    return '<tr class="' + (hits.length ? 'flag' : '') + '">'
+    // 유입이 make.html 이면 만들기 화면의 미리보기다. 실제 열람과 구분해야 한다.
+    const preview = /make\.html/.test(String(r[11] || ''));
+    return '<tr class="' + (hits.length ? 'flag' : (preview ? 'prev' : '')) + '">'
       + '<td class="dim">' + when + '</td>'
       + cell(r[1])
-      + (hits.length ? '<td class="tag">' + hits.join(', ') + '</td>' : '<td></td>')
+      + (hits.length ? '<td class="tag">' + hits.join(', ') + '</td>'
+                     : (preview ? '<td class="dim">미리보기</td>' : '<td></td>'))
       + cell(r[2]) + cell(r[3]) + cell(r[4])
       + cell(r[5] + ' / ' + r[6])
       + cell(r[9])
+      + '<td class="dim">' + String(r[10] || '') + '</td>'
       + '<td class="lines">' + String(r[7]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</td>'
       + '</tr>';
   }).join('');
@@ -111,15 +129,16 @@ function page_(rows, total){
    + 'th,td{border-bottom:1px solid #eee;padding:7px 9px;text-align:left;vertical-align:top}'
    + 'th{background:#fafafa;position:sticky;top:0;font-size:11.5px;color:#666}'
    + 'tr.flag{background:#fff6f6}'
+   + 'tr.prev{opacity:.45}'
    + '.tag{color:#c0392b;font-weight:700;white-space:nowrap}'
    + '.dim{color:#999;white-space:nowrap}'
    + '.lines{color:#666;max-width:420px}'
    + '</style>'
    + '<h1>sayyes 로그</h1>'
-   + '<div class="sub">전체 ' + total + '건 · 최근 ' + rows.length + '건 표시 · 붉은 줄은 신상/욕설 의심</div>'
+   + '<div class="sub">전체 ' + total + '건 · 최근 ' + rows.length + '건 · 붉은 줄=신상/욕설 의심 · 흐린 줄=만들기 화면 미리보기</div>'
    + '<input id="q" placeholder="검색 (질문, 이름, 문구...)">'
    + '<table><thead><tr><th>시각</th><th>종류</th><th>표시</th><th>질문</th><th>받는</th><th>보낸</th>'
-   + '<th>버튼</th><th>도망</th><th>문구</th></tr></thead><tbody id="b">' + body + '</tbody></table>'
+   + '<th>버튼</th><th>도망</th><th>세션</th><th>문구</th></tr></thead><tbody id="b">' + body + '</tbody></table>'
    + '<script>'
    + 'document.getElementById("q").addEventListener("input",function(e){'
    + 'var v=e.target.value.toLowerCase();'
